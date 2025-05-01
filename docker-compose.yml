@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  app:
+    image: python:3.10
+    command: bash -c "pip install -r requirements.txt"
+    working_dir: /app
+    ports:
+      - "8080:80"
+    volumes:
+      - ./local-path:/container-path
+    networks:
+      - your-network
