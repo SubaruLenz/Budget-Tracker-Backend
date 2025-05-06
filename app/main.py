@@ -2,8 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from database import get_db
-from database_mapping import User, Wallet, Transaction
-from database_model import UserCreate, User, WalletCreate, Wallet, TransactionCreate, Transaction
+from data_mapper import User, Wallet, Transaction
+from data_verification import UserCreate, User, WalletCreate, Wallet, TransactionCreate, Transaction
 
 app = FastAPI()
 
