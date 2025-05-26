@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from . import test_table
+from . import accounts
 
 routerManager = APIRouter()
-routerManager.include_router(test_table.router)
+routerManager.include_router(accounts.router)
