@@ -1,4 +1,4 @@
-from psycopg import connect, OperationalError
+from psycopg2 import connect, OperationalError
 from dotenv import load_dotenv
 import os
 import logging

@@ -1,8 +1,13 @@
-import datetime
-from sqlalchemy import Integer, String, DateTime, Numeric, ForeignKey
+import datetime, enum
+from sqlalchemy import Integer, String, DateTime, Numeric, ForeignKey, Enum
 from sqlalchemy.orm import Mapped, MappedColumn, relationship
 
 from .database import Base, engine
+
+class TransactionTypeEnum(enum.Enum):
+    FOOD = "food"
+    COMMUTE = "commute"
+    OTHER = "other"
 
 class Users(Base):
     __tablename__ = "users"
@@ -10,9 +15,10 @@ class Users(Base):
 
     id: Mapped[int] = MappedColumn(Integer, primary_key=True, nullable=False)
     username: Mapped[str] = MappedColumn(String(50), nullable=False)
-    email: Mapped[str] = MappedColumn(String(100), nullable=False)
+    name: Mapped[str] = MappedColumn(String(100), nullable=False)
+    email: Mapped[str] = MappedColumn(String(254), unique=True, nullable=False)
     password: Mapped[str] = MappedColumn(String(100), nullable=False)
-    created_date: Mapped[DateTime] = MappedColumn(DateTime, default=datetime.datetime.now, nullable=False)
+    create_date: Mapped[DateTime] = MappedColumn(DateTime, default=datetime.datetime.now, nullable=False)
 
     user_wallet_fk = relationship("Wallets")
     user_transaction_fk = relationship("Transactions")
@@ -36,9 +42,10 @@ class Transactions(Base):
     id: Mapped[int] = MappedColumn(Integer, primary_key=True, nullable=False)
     name: Mapped[str] = MappedColumn(String(100), nullable=False)
     amount: Mapped[float] = MappedColumn(Numeric(10, 2))
+    transaction_type: Mapped[TransactionTypeEnum] = MappedColumn(Enum(TransactionTypeEnum), default="other")
     user_id: Mapped[int] = MappedColumn(Integer, ForeignKey("users.id"))
     wallet_id: Mapped[int] = MappedColumn(Integer, ForeignKey("wallets.id"))
-    create_date: Mapped[DateTime] = MappedColumn(DateTime, default=datetime.datetime.now, nullable=False)
+    transaction_date: Mapped[DateTime] = MappedColumn(DateTime, default=datetime.datetime, nullable=False)
 
 class Conversations(Base):
     __tablename__ = "conversations"

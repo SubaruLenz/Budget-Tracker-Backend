@@ -1,35 +1,49 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
+
 class Users(BaseModel):
-    id: int
     username: str
-    email: str
-    password: str
-    created_date: datetime
+    name: str
+    email: EmailStr
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+class UserInDB(Users):
+    hashed_password: str
+
+#Optional
+class responseUsers(Users):
+    id: int
+    create_date: datetime
 
 class Wallets(BaseModel):
-    id: int
     name: str
     user_id: int
     balance: float
-    created_date: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+#Optional
+class responseWallets(Wallets):
+    id: int
+    created_date: datetime
+
 
 class Transactions(BaseModel):
-    id: int
     user_id: int
     amount: float
     transaction_type: str
     category: str
-    created_date: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+class responseTransactions(Transactions):
+    id: int
+    created_date: datetime
+
 
 class Conversations(BaseModel):
     id: int
@@ -40,7 +54,7 @@ class Conversations(BaseModel):
     date: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class Chats(BaseModel):
     id: int
@@ -49,6 +63,11 @@ class Chats(BaseModel):
     timestamp: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-    
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: str = ""
