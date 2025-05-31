@@ -5,10 +5,12 @@ class Users(BaseModel):
     username: str
     name: str
     email: EmailStr
-    password: str
 
     class Config:
         from_attributes = True
+
+class UserInDB(Users):
+    hashed_password: str
 
 #Optional
 class responseUsers(Users):
@@ -63,4 +65,9 @@ class Chats(BaseModel):
     class Config:
         from_attributes = True
 
-    
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: str = ""
