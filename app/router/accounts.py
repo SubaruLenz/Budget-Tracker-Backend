@@ -6,11 +6,11 @@ from sqlalchemy.orm import Session
 from typing import Annotated
 
 #Dependencies
-import authentication.jwt_manager as jwt_manager
-from authentication.jwt_manager import ACCESS_TOKEN_EXPIRATION
-from ..database import baseModels, models
-from ..database.database import get_db
-from ..database.models import Users
+import app.authentication.jwt_manager as jwt_manager
+from app.authentication.jwt_manager import ACCESS_TOKEN_EXPIRATION
+from app.database import baseModels, models
+from app.database.database import get_db
+from app.database.models import Users
 
 router = APIRouter(tags=["Account Management"])
 
@@ -37,51 +37,6 @@ def create_account(baseUser: baseModels.UserInDB, db: Session = Depends(get_db))
             return {"error": "Username or email Exist"}
     except Exception as e:
         print(f"[Error] Error occurred while creating user {str(e)}")
-        return {"error": str(e)}
-
-#Obsolete update user function
-@router.put("/user/update/{id}")
-def update_user(id: int, baseUser: baseModels.UserInDB, db: Session = Depends(get_db)):
-    user = db.query(Users).filter_by(id=f"{id}").first()
-    hash = jwt_manager.get_password_hash(baseUser.hashed_password)
-    try:
-        if(user):
-            user.username = baseUser.username
-            user.name = baseUser.name
-            user.email = baseUser.email
-            user.password = hash
-            db.merge(user)
-            db.commit()
-            print("[Success] Update item successfully")
-            return {"message": "Item updated successfully"}
-        else:
-            print(f"[Error] This account doesn't exist")
-            return {"error": "This account doesn't exist"}
-    except Exception as e:
-        print(f"[Error] Error while trying to update user")
-        return {"error": str(e)}
-
-#Obsolete clean hash function
-@router.put("/user/clean/{id}")
-def clean_hash(id: int, db: Session = Depends(get_db)):
-    user = db.query(Users).filter_by(id=f"{id}").first()
-    hash = "$bcrypt-sha256$v=2,t=2b,r=12"
-    try:
-        if(user):
-            local_password = user.password
-            if hash in user.password:
-                user.password = local_password.replace(hash, "")
-                db.merge(user)
-                db.commit()
-                print("[Success] This one is cleaned")
-                return{"message": "This one is cleaned"}
-            else:
-                print("[Success] This one is already cleaned")
-                return {"message":"This one is already cleaned"}
-        print(f"[Error] This account doesn't exist")
-        return {"error": "This account doesn't exist"}
-    except Exception as e:
-        print(f"[Error] Error while trying to update user")
         return {"error": str(e)}
 
 @router.post("/token")
@@ -142,4 +97,23 @@ async def account_update(
             return {"error": "This account doesn't exist"}
     except Exception as e:
         print(f"[Error] Error while trying to update user")
+        return {"error": str(e)}
+
+@router.delete("/users/delete")
+async def account_delete(
+    current_user: Annotated[baseModels.Users, Depends(jwt_manager.get_current_user)],
+    db: Session = Depends(get_db)
+):
+    user = db.query(Users).filter_by(username=current_user.username).first()
+    try:
+        if(user):
+            db.delete(user)
+            db.commit()
+            print("[Success] Delete Account successfully")
+            return {"message": "Account deleted successfully"}
+        else:
+            print(f"[Error] This account doesn't exist")
+            return {"error": "This account doesn't exist"}
+    except Exception as e:
+        print(f"[Error] Error while trying to delete user")
         return {"error": str(e)}

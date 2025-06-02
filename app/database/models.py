@@ -42,7 +42,7 @@ class Transactions(Base):
     id: Mapped[int] = MappedColumn(Integer, primary_key=True, nullable=False)
     name: Mapped[str] = MappedColumn(String(100), nullable=False)
     amount: Mapped[float] = MappedColumn(Numeric(10, 2))
-    transaction_type: Mapped[TransactionTypeEnum] = MappedColumn(Enum(TransactionTypeEnum), default="other")
+    #transaction_type: Mapped[TransactionTypeEnum] = MappedColumn(Enum(TransactionTypeEnum), default="other")
     user_id: Mapped[int] = MappedColumn(Integer, ForeignKey("users.id"))
     wallet_id: Mapped[int] = MappedColumn(Integer, ForeignKey("wallets.id"))
     transaction_date: Mapped[DateTime] = MappedColumn(DateTime, default=datetime.datetime, nullable=False)
