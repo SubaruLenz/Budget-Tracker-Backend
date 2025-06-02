@@ -2,14 +2,14 @@ from datetime import timedelta, datetime, timezone
 from typing import Annotated
 from dotenv import load_dotenv
 
-import jwt, os
+import os, jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
-from .database import baseModels, models
-from .database.database import get_db
+from app.database import baseModels, models
+from app.database.database import get_db
 
 #Get environment variables
 load_dotenv()
@@ -34,7 +34,6 @@ def get_password_hash(password):
 def get_user(username: str, db: Session):
     try:
         user = db.query(models.Users).filter_by(username=username).first()
-        print(user)
         if user:
             user_dict = user.__dict__.copy()
             user_dict.pop('_sa_instance_state', None)

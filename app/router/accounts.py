@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 from typing import Annotated
 
 #Dependencies
-import app.jwt_manager as jwt_manager
-from app.jwt_manager import ACCESS_TOKEN_EXPIRATION
+import authentication.jwt_manager as jwt_manager
+from authentication.jwt_manager import ACCESS_TOKEN_EXPIRATION
 from ..database import baseModels, models
 from ..database.database import get_db
 from ..database.models import Users
@@ -112,3 +112,34 @@ async def read_users_me(
     current_user: Annotated[baseModels.Users, Depends(jwt_manager.get_current_user)],
 ):
     return current_user
+
+@router.put("/users/update")
+async def account_update(
+    current_user: Annotated[baseModels.Users, Depends(jwt_manager.get_current_user)],
+    baseUser: baseModels.UserInDB,
+    db: Session = Depends(get_db)
+):
+    user = db.query(Users).filter_by(username=current_user.username).first()
+    hash = jwt_manager.get_password_hash(baseUser.hashed_password)
+    try:
+        if(user):
+            if (user.username == baseUser.username):
+                if (user.email == baseUser.email):
+                    user.name = baseUser.name
+                    user.password = hash
+                    db.merge(user)
+                    db.commit()
+                    print("[Success] Update item successfully")
+                    return {"message": "Item updated successfully"}
+                else:
+                    print("[Error] Email doesn't match")
+                    return {"error": "Email doesn't match"}
+            else:
+                print("[Error] Username doesn't match")
+                return {"error": "Username doesn't match"}
+        else:
+            print(f"[Error] This account doesn't exist")
+            return {"error": "This account doesn't exist"}
+    except Exception as e:
+        print(f"[Error] Error while trying to update user")
+        return {"error": str(e)}
