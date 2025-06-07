@@ -2,15 +2,15 @@ from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
 class Users(BaseModel):
-    username: str
-    name: str
-    email: EmailStr
+    username: str = "johndoe"
+    name: str = "John Doe"
+    email: EmailStr = "john@example.com"
 
     class Config:
         from_attributes = True
 
 class UserInDB(Users):
-    hashed_password: str
+    hashed_password: str = "hashed_password"
 
 #Optional
 class responseUsers(Users):
@@ -28,11 +28,10 @@ class Wallets(BaseModel):
 #Optional
 class responseWallets(Wallets):
     id: int
-    created_date: datetime
+    create_date: datetime
 
 
 class Transactions(BaseModel):
-    user_id: int
     amount: float
     transaction_type: str
     category: str
@@ -42,8 +41,8 @@ class Transactions(BaseModel):
 
 class responseTransactions(Transactions):
     id: int
+    user_id: int
     created_date: datetime
-
 
 class Conversations(BaseModel):
     id: int

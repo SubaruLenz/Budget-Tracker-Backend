@@ -5,9 +5,28 @@ from .database import models
 from .database.database import engine, DATABASE_URL
 from .router import router_manager
 
+#Import mockdata script
+from mockdata import create_mock_data
+
 app = FastAPI()
 
+#Operation
+#models.Base.metadata.bind = engine
+
+#Development
+#print("Dropping database tables...")
+#models.Base.metadata.drop_all(bind=engine)
+#print("Dropping database tables completed.")
+
+print("Creating database tables...")
 models.Base.metadata.create_all(bind=engine)
+print("Creating database tables completed.")
+
+#print("Inserting mock data...")
+#create_mock_data()
+#print("Mock data insertion completed.")
+
+
 
 app = FastAPI()
 
