@@ -1,6 +1,9 @@
 {
     "python.analysis.extraPaths": [
         "./app",
-        "./app/database"
+        "./app/database",
+        "./app/authentication",
+        "./app/llm",
+        "./app/router"
     ]
 }
