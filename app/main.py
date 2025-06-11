@@ -11,22 +11,34 @@ from mockdata import create_mock_data
 app = FastAPI()
 
 #Operation
-#models.Base.metadata.bind = engine
+models.Base.metadata.bind = engine
 
-#Development
-#print("Dropping database tables...")
-#models.Base.metadata.drop_all(bind=engine)
-#print("Dropping database tables completed.")
+def clear_database():
+    #Development
+    print("Dropping database tables...")
+    models.Base.metadata.drop_all(bind=engine)
+    print("Dropping database tables completed.")
 
-print("Creating database tables...")
-models.Base.metadata.create_all(bind=engine)
-print("Creating database tables completed.")
+def create_database():
+    print("Creating database tables...")
+    models.Base.metadata.create_all(bind=engine)
+    print("Creating database tables completed.")
 
-#print("Inserting mock data...")
-#create_mock_data()
-#print("Mock data insertion completed.")
+def run_mock():
+    print("Inserting mock data...")
+    create_mock_data()
+    print("Mock data insertion completed.")
 
-
+key_input = ""
+while (key_input != "y" and key_input != "n"):
+    key_input = input("Clear database and input mock data?")
+else:
+    if (key_input == "y"):
+        clear_database()
+        create_database()
+        run_mock()
+    else:
+        create_database()
 
 app = FastAPI()
 

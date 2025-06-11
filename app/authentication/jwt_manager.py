@@ -38,7 +38,7 @@ def get_user(username: str, db: Session):
             user_dict = user.__dict__.copy()
             user_dict.pop('_sa_instance_state', None)
             # Map 'password' to 'hashed_password'
-            user_dict['hashed_password'] = user_dict.pop('password')
+            user_dict['hashed_password'] = user_dict.pop('password_hashed')
             print(f"[User] {baseModels.UserInDB(**user_dict)}")
             return baseModels.UserInDB(**user_dict)
         else:

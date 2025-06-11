@@ -1,7 +1,8 @@
 import datetime
 from sqlalchemy.orm import Session
-from app.database import models 
+from app.database import models
 from app.database.database import engine
+from app.authentication.jwt_manager import get_password_hash
  # adjust the import path to your models module
 
 def create_mock_data ():
@@ -17,13 +18,22 @@ def create_mock_data ():
         username="johndoe",
         name="John Doe",
         email="john@example.com",
-        password="hashed_password",  # Assume already hashed in real use
+        password_hashed=get_password_hash("123"),  # Assume already hashed in real use
         create_date=datetime.datetime.now()
     )
     session.add(user1)
+
+    admin = models.Users(
+        username="admin",
+        name="Admin",
+        email="admin@example.com",
+        password_hashed=get_password_hash("admin"),
+        create_date=datetime.datetime.now()
+    )
+    session.add(admin)
     session.flush()  # Get user1.id
     
-    print("✅ User added:", user1.username)
+    print("✅ User added:", user1.username, admin.username)
     
     # ----------------------
     # 2. Add Wallet
@@ -42,12 +52,12 @@ def create_mock_data ():
     # ----------------------
     # 3. Add Transaction Categories
     # ----------------------
-    category_food = models.TransactionCategories(category="Food")
-    category_utilities = models.TransactionCategories(category="Utilities")
+    category_food = models.TransactionCategories(name="Food")
+    category_utilities = models.TransactionCategories(name="Utilities")
     session.add_all([category_food, category_utilities])
     session.flush()
     
-    print("✅ Categories added:", category_food.category, category_utilities.category)
+    print("✅ Categories added:", category_food.name, category_utilities.name)
     
     # ----------------------
     # 4. Add Transaction Types
@@ -65,7 +75,6 @@ def create_mock_data ():
     transaction1 = models.Transactions(
         name="Grocery Shopping",
         amount=150.50,
-        income=False,
         transaction_type_id=type_groceries.id,
         user_id=user1.id,
         wallet_id=wallet1.id,
@@ -81,7 +90,6 @@ def create_mock_data ():
     conversation1 = models.Conversations(
         user_id=user1.id,
         create_date=datetime.datetime.now(),
-        role="USER"  # Assuming Enum is set up as string values
     )
     session.add(conversation1)
     session.flush()
@@ -93,7 +101,8 @@ def create_mock_data ():
     # ----------------------
     chat1 = models.Chats(
         conversation_id=conversation1.id,
-        texts="Hey, how can I track my groceries?",
+        role="USER",  # Assuming Enum is set up as string values
+        content="Hey, how can I track my groceries?",
         create_date=datetime.datetime.now()
     )
     session.add(chat1)

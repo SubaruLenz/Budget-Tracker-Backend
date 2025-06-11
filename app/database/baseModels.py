@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from datetime import datetime
 
 class Users(BaseModel):
@@ -6,8 +6,7 @@ class Users(BaseModel):
     name: str = "John Doe"
     email: EmailStr = "john@example.com"
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserInDB(Users):
     hashed_password: str = "hashed_password"
@@ -22,8 +21,8 @@ class Wallets(BaseModel):
     user_id: int
     balance: float
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 #Optional
 class responseWallets(Wallets):
@@ -36,8 +35,8 @@ class Transactions(BaseModel):
     transaction_type: str
     category: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 class responseTransactions(Transactions):
     id: int
@@ -48,12 +47,10 @@ class Conversations(BaseModel):
     id: int
     user_id: int
     amount: float
-    transaction_type: str
-    category: str
     date: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 class Chats(BaseModel):
     id: int
@@ -61,8 +58,23 @@ class Chats(BaseModel):
     message: str
     timestamp: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TransactionCategory(BaseModel):
+    id: int
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TransactionType(BaseModel):
+    id: int
+    name: str
+    category_id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 class Token(BaseModel):
     access_token: str
