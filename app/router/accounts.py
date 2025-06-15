@@ -79,7 +79,7 @@ async def account_update_password(
             if (user.username == baseUser.username):
                 if (user.email == baseUser.email):
                     user.name = baseUser.name
-                    user.password = hash
+                    user.password_hashed = hash
                     db.merge(user)
                     db.commit()
                     print("[Success] Update item successfully")

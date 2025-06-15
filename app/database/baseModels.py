@@ -1,7 +1,9 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
+from decimal import Decimal
 from datetime import datetime
 
 class Users(BaseModel):
+    id: int = 1
     username: str = "johndoe"
     name: str = "John Doe"
     email: EmailStr = "john@example.com"
@@ -13,13 +15,11 @@ class UserInDB(Users):
 
 #Optional
 class responseUsers(Users):
-    id: int
     create_date: datetime
 
 class Wallets(BaseModel):
     name: str
-    user_id: int
-    balance: float
+    balance: Decimal = Decimal(0.00)
 
     model_config = ConfigDict(from_attributes=True)
 

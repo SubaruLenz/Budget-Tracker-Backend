@@ -1,13 +1,16 @@
+#Libraries
+import os, jwt
+import logging
 from datetime import timedelta, datetime, timezone
 from typing import Annotated
 from dotenv import load_dotenv
-
-import os, jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
+
+#Dependencies
 from app.database import baseModels, models
 from app.database.database import get_db
 
@@ -15,7 +18,7 @@ from app.database.database import get_db
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRATION = os.getenv("ACCESS_TOKEN_EXPIRATION")
+ACCESS_TOKEN_EXPIRATION = os.getenv("ACCESS_TOKEN_EXPIRATION") #String
 
 #db: Session = Depends(get_db)
 

@@ -46,7 +46,7 @@ def create_wallet(
         new_wallet = Wallets(
             name=baseWallet.name,
             balance=baseWallet.balance,
-            user_id=user.id
+            user_id=current_user.id
         )
         db.add(new_wallet)
         db.commit()
