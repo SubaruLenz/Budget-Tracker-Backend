@@ -6,7 +6,7 @@ from typing import Annotated
 
 #Dependecies
 import app.authentication.jwt_manager as jwt_manager
-from app.database import baseModels
+from app.database.baseModels import Users as baseUsers, TransactionCategory as baseTransactionCategory
 from app.database.database import get_db
 from app.database.models import TransactionCategories, Users
 
@@ -15,7 +15,7 @@ router = APIRouter(tags=["Category"])
 
 #User verification
 def user_verification(
-    current_user: baseModels.Users,
+    current_user: baseUsers,
     db: Session
 ):
     user = db.query(Users).filter_by(username=current_user.username).first()
@@ -25,22 +25,22 @@ def user_verification(
         raise HTTPException(status_code=404, detail="User not found")
 
 #Routers
-@router.get("/categories", response_model=list[baseModels.TransactionCategory])
+@router.get("/categories", response_model=list[baseTransactionCategory])
 async def get_categories(
-    current_user: Annotated[baseModels.Users, Depends(jwt_manager.get_current_user)],
+    current_user: Annotated[baseUsers, Depends(jwt_manager.get_current_user)],
     db: Session = Depends(get_db)
 ):  
     user_verification(current_user, db)
     categories = db.query(TransactionCategories).all()
-    baseCategories: list[baseModels.TransactionCategory] = []
+    baseCategories: list[baseTransactionCategory] = []
     for category in categories:
-        baseCategories.append(baseModels.TransactionCategory.model_validate(category))
+        baseCategories.append(baseTransactionCategory.model_validate(category))
     return baseCategories
 
-@router.get("/category/{id}", response_model=baseModels.TransactionCategory)
+@router.get("/category/{id}", response_model=baseTransactionCategory)
 def get_category_by_id(
     id: int,
-    current_user: Annotated[baseModels.Users, Depends(jwt_manager.get_current_user)],
+    current_user: Annotated[baseUsers, Depends(jwt_manager.get_current_user)],
     db: Session = Depends(get_db)
 ):
     #Verification
@@ -51,12 +51,12 @@ def get_category_by_id(
     if (not category):
         print("[error] Category not found")
         raise HTTPException(status_code=404, detail="Category not found")   
-    return baseModels.TransactionCategory.model_validate(category)
+    return baseTransactionCategory.model_validate(category)
 
 @router.post("/category/create")
 def create_category(
-    base_category: baseModels.TransactionCategory,
-    current_user: Annotated[baseModels.Users, Depends(jwt_manager.get_current_user)],
+    base_category: baseTransactionCategory,
+    current_user: Annotated[baseUsers, Depends(jwt_manager.get_current_user)],
     db: Session = Depends(get_db)
 ):
     #verification
@@ -79,8 +79,8 @@ def create_category(
 @router.put("/category/update/{id}")
 def update_category(
     id:int,
-    base_category: baseModels.TransactionCategory,
-    current_user: Annotated[baseModels.Users, Depends(jwt_manager.get_current_user)],
+    base_category: baseTransactionCategory,
+    current_user: Annotated[baseUsers, Depends(jwt_manager.get_current_user)],
     db: Session = Depends(get_db)
 ):
     #Verification
@@ -104,7 +104,7 @@ def update_category(
 @router.delete("/category/delete/{id}")
 def delete_category(
     id:int,
-    current_user: Annotated[baseModels.Users, Depends(jwt_manager.get_current_user)],
+    current_user: Annotated[baseUsers, Depends(jwt_manager.get_current_user)],
     db: Session = Depends(get_db)
 ):
     #Verification

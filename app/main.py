@@ -6,41 +6,17 @@ from .database.database import engine, DATABASE_URL
 from .router import router_manager
 
 #Import mockdata script
-from mockdata import create_mock_data
+from test.mockdata import create_mock_data
 
 app = FastAPI()
 
 #Operation
-models.Base.metadata.bind = engine
-
-def clear_database():
-    #Development
-    print("Dropping database tables...")
-    models.Base.metadata.drop_all(bind=engine)
-    print("Dropping database tables completed.")
+#models.Base.metadata.bind = engine
 
 def create_database():
     print("Creating database tables...")
     models.Base.metadata.create_all(bind=engine)
     print("Creating database tables completed.")
-
-def run_mock():
-    print("Inserting mock data...")
-    create_mock_data()
-    print("Mock data insertion completed.")
-
-key_input = ""
-while (key_input != "y" and key_input != "n"):
-    key_input = input("Clear database and input mock data?")
-else:
-    if (key_input == "y"):
-        clear_database()
-        create_database()
-        run_mock()
-    else:
-        create_database()
-
-app = FastAPI()
 
 def connect_to_db():
     while True:
