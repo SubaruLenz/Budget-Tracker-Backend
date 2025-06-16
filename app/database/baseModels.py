@@ -13,6 +13,14 @@ class Users(BaseModel):
 class UserInDB(Users):
     hashed_password: str = "hashed_password"
 
+class CreateUser(BaseModel):
+    username: str = "johndoe"
+    name: str = "John Doe"
+    email: EmailStr = "john@example.com"
+    hashed_password: str = "hashed_password"
+
+    model_config = ConfigDict(from_attributes=True)
+
 #Optional
 class responseUsers(Users):
     create_date: datetime
@@ -66,6 +74,9 @@ class TransactionCategory(BaseModel):
     name: str
 
     model_config = ConfigDict(from_attributes=True)
+
+class CreateTransactionCategory(BaseModel):
+    name: str
 
 
 class TransactionType(BaseModel):
