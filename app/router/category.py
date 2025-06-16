@@ -1,4 +1,5 @@
 #Libraries
+import logging
 from fastapi import HTTPException, APIRouter, Depends
 from sqlalchemy import null
 from sqlalchemy.orm import Session
@@ -6,12 +7,17 @@ from typing import Annotated
 
 #Dependecies
 import app.authentication.jwt_manager as jwt_manager
-from app.database.baseModels import Users as baseUsers, TransactionCategory as baseTransactionCategory
+from app.database.baseModels import Users as baseUsers, TransactionCategory as baseTransactionCategory, CreateTransactionCategory
 from app.database.database import get_db
 from app.database.models import TransactionCategories, Users
+from app.config.log_config import setup_config
 
 #Routing
 router = APIRouter(tags=["Category"])
+
+#Logging
+setup_config()
+logger = logging.getLogger(__name__)
 
 #User verification
 def user_verification(
@@ -21,7 +27,7 @@ def user_verification(
     user = db.query(Users).filter_by(username=current_user.username).first()
 
     if(not user):
-        print("[Error] User not found")
+        logger.error("User not found")
         raise HTTPException(status_code=404, detail="User not found")
 
 #Routers
@@ -49,13 +55,13 @@ def get_category_by_id(
     #Category search
     category = db.query(TransactionCategories).filter_by(id=id).first()
     if (not category):
-        print("[error] Category not found")
+        logger.error("Category not found")
         raise HTTPException(status_code=404, detail="Category not found")   
     return baseTransactionCategory.model_validate(category)
 
 @router.post("/category/create")
 def create_category(
-    base_category: baseTransactionCategory,
+    base_category: CreateTransactionCategory,
     current_user: Annotated[baseUsers, Depends(jwt_manager.get_current_user)],
     db: Session = Depends(get_db)
 ):
@@ -64,7 +70,7 @@ def create_category(
 
     #Only allow admin
     if (current_user.username != "admin"):
-        print("[Error] Not admin try to delete category")
+        logger.error("Not admin try to delete category")
         return {"error": "Unauthorized action"}
 
     #Create category
@@ -79,7 +85,7 @@ def create_category(
 @router.put("/category/update/{id}")
 def update_category(
     id:int,
-    base_category: baseTransactionCategory,
+    base_category: CreateTransactionCategory,
     current_user: Annotated[baseUsers, Depends(jwt_manager.get_current_user)],
     db: Session = Depends(get_db)
 ):
@@ -88,13 +94,13 @@ def update_category(
 
     #Only allow admin
     if (current_user.username != "admin"):
-        print("[Error] Not admin try to delete category")
+        logger.error("Not admin try to delete category")
         return {"error": "Unauthorized action"}
 
     #Update
     category = db.query(TransactionCategories).filter_by(id=id).first()
     if (not category):
-        print("[Error] Category not found")
+        logger.error("Category not found")
         return {"error": "Category not found"}
 
     category=base_category.name
@@ -112,14 +118,14 @@ def delete_category(
 
     #Only allow admin
     if (current_user.username != "admin"):
-        print("[Error] Not admin try to delete category")
+        logger.error("Not admin try to delete category")
         return {"error": "Unauthorized action"}
     
     #Delete
     category = db.query(TransactionCategories).filter_by(id=id).first()
     if (not category):
-        print("[Error] Category not found")
+        logger.error("Category not found")
         return {"error": "Category not found"}
     db.delete(category)
     db.commit()
-    print("[Success] Delete category successfully")
+    logger.info("Delete category successfully")

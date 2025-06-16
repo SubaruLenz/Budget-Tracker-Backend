@@ -1,4 +1,5 @@
 #Libraries
+import logging
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
@@ -8,11 +9,16 @@ from typing import Annotated
 #Dependencies
 import app.authentication.jwt_manager as jwt_manager
 from app.authentication.jwt_manager import ACCESS_TOKEN_EXPIRATION
-from app.database import baseModels, models
+from app.database import baseModels
 from app.database.database import get_db
 from app.database.models import Users
+from app.config.log_config import setup_config
 
 router = APIRouter(tags=["Account Management"])
+
+#Logging
+setup_config()
+logger = logging.getLogger(__name__)
 
 @router.post("/token")
 async def login_for_accept_token(
@@ -30,7 +36,7 @@ async def login_for_accept_token(
         expiration = float(ACCESS_TOKEN_EXPIRATION)
         access_token_expires=timedelta(minutes=expiration)
     else:
-        print("[Error] Please add Expiraion to environment file")
+        logger.critical("[Error] Please add Expiraion to environment file")
         raise Exception
     access_token = jwt_manager.create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
@@ -38,27 +44,27 @@ async def login_for_accept_token(
     return baseModels.Token(access_token=access_token, token_type="bearer")
 
 @router.post("/users/create")
-def create_account(baseUser: baseModels.UserInDB, db: Session = Depends(get_db)):
+def create_account(baseUser: baseModels.CreateUser, db: Session = Depends(get_db)):
     try:
         if (not db.query(Users).filter_by(username=f"{baseUser.username}").first() or not db.query(Users).filter_by(email=f"{baseUser.email}").first()):
             hash=jwt_manager.get_password_hash(baseUser.hashed_password)
-            new_account = models.Users(
+            new_account = Users(
                 username=baseUser.username,
                 name=baseUser.name,
                 email=baseUser.email,
-                password=hash,
+                password_hashed=hash,
                 create_date=datetime.now(timezone.utc))
             db.add(new_account)
             db.commit()
             db.refresh(new_account)
-            print("[Success] Create item successfully")
-            print(f"[Hash] {hash}")
+            logger.info("Create account successfully")
+            logger.info(f"[Hash] - {hash}")
             return {"message": "Item created successfully"}
         else:
-            print("[Error] Username exist or email")
+            logger.error("Username exist or email")
             return {"error": "Username or email Exist"}
     except Exception as e:
-        print(f"[Error] Error occurred while creating user {str(e)}")
+        logger.exception(f"Error occurred while creating user {str(e)}")
         return {"error": str(e)}
 
 @router.get("/users/me/", response_model=baseModels.Users)
@@ -82,25 +88,25 @@ async def account_update_password(
                     user.password_hashed = hash
                     db.merge(user)
                     db.commit()
-                    print("[Success] Update item successfully")
-                    return {"message": "Item updated successfully"}
+                    logger.info("Update account successfully")
+                    return {"message": "Account updated successfully"}
                 else:
-                    print("[Error] Email doesn't match")
+                    logger.error("Email doesn't match")
                     return {"error": "Email doesn't match"}
             else:
-                print("[Error] Username doesn't match")
+                logger.error("Username doesn't match")
                 return {"error": "Username doesn't match"}
         else:
-            print(f"[Error] This account doesn't exist")
+            logger.error(f"This account doesn't exist")
             return {"error": "This account doesn't exist"}
     except Exception as e:
-        print(f"[Error] Error while trying to update user")
+        logger.exception(f"Error while trying to update user")
         return {"error": str(e)}
 
 @router.put("/users/update")
 async def account_update(
     current_user: Annotated[baseModels.Users, Depends(jwt_manager.get_current_user)],
-    baseUser: baseModels.UserInDB,
+    baseUser: baseModels.CreateUser,
     db: Session = Depends(get_db)
 ):
     user = db.query(Users).filter_by(username=current_user.username).first()
@@ -113,19 +119,19 @@ async def account_update(
                     user.password_hashed = hash
                     db.merge(user)
                     db.commit()
-                    print("[Success] Update item successfully")
-                    return {"message": "Item updated successfully"}
+                    logger.info("Update item successfully")
+                    return {"message": "Account updated successfully"}
                 else:
-                    print("[Error] Email doesn't match")
+                    logger.error("Email doesn't match")
                     return {"error": "Email doesn't match"}
             else:
-                print("[Error] Username doesn't match")
+                logger.error("Username doesn't match")
                 return {"error": "Username doesn't match"}
         else:
-            print(f"[Error] This account doesn't exist")
+            logger.error(f"This account doesn't exist")
             return {"error": "This account doesn't exist"}
     except Exception as e:
-        print(f"[Error] Error while trying to update user")
+        logger.exception(f"Error while trying to update user")
         return {"error": str(e)}
 
 @router.delete("/users/delete")
@@ -138,11 +144,11 @@ async def account_delete(
         if(user):
             db.delete(user)
             db.commit()
-            print("[Success] Delete Account successfully")
+            logger.info("Delete Account successfully")
             return {"message": "Account deleted successfully"}
         else:
-            print(f"[Error] This account doesn't exist")
+            logger.error(f"This account doesn't exist")
             return {"error": "This account doesn't exist"}
     except Exception as e:
-        print(f"[Error] Error while trying to delete user")
+        logger.exception(f"Error while trying to delete user")
         return {"error": str(e)}

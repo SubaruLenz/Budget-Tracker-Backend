@@ -11,8 +11,13 @@ from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 
 #Dependencies
+from app.config.log_config import setup_config
 from app.database import baseModels, models
 from app.database.database import get_db
+
+#Logging
+setup_config()
+logger = logging.getLogger(__name__)
 
 #Get environment variables
 load_dotenv()
@@ -27,7 +32,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 #Verify password and hash password function
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    check = pwd_context.verify(plain_password, hashed_password)
+    if check == False:
+        logger.error("Wrong password")
+    return check
 
 #Hash password function
 def get_password_hash(password):
@@ -42,13 +50,13 @@ def get_user(username: str, db: Session):
             user_dict.pop('_sa_instance_state', None)
             # Map 'password' to 'hashed_password'
             user_dict['hashed_password'] = user_dict.pop('password_hashed')
-            print(f"[User] {baseModels.UserInDB(**user_dict)}")
+            logger.info(f"[User] - {baseModels.UserInDB(**user_dict)}")
             return baseModels.UserInDB(**user_dict)
         else:
-            print("[Error] User not found")
+            logger.error("User not found")
             return None
     except Exception as e:
-        print(f"[Error] Error at get user. This error {e}")
+        logger.exception(f"Error at get user. This error {e}")
         raise Exception
 
 # Authenticate user function
@@ -58,6 +66,7 @@ def authenticate_user(username: str, password: str, db: Session):
         return False
     if not verify_password(password, user.hashed_password):
         return False
+    logger.info("Login successfully!")
     return user
 
 # Create access token function
