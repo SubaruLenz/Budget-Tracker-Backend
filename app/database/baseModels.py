@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr, ConfigDict
 from decimal import Decimal
 from datetime import datetime
 
+#User
 class Users(BaseModel):
     id: int = 1
     username: str = "johndoe"
@@ -21,10 +22,14 @@ class CreateUser(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-#Optional
-class responseUsers(Users):
-    create_date: datetime
+class UpdateUser(BaseModel):
+    name: str = "John Doe"
+    email: EmailStr = "john@example.com"
+    hashed_password: str = "hashed_password"
 
+    model_config = ConfigDict(from_attributes=True)
+
+#Wallets
 class Wallets(BaseModel):
     name: str
     balance: Decimal = Decimal(0.00)
@@ -37,20 +42,25 @@ class responseWallets(Wallets):
     id: int
     create_date: datetime
 
-
+#Transaction
 class Transactions(BaseModel):
-    amount: float
-    transaction_type: str
-    category: str
+    name: str
+    amount: Decimal
+    transaction_type_id: int
 
     model_config = ConfigDict(from_attributes=True)
 
-
-class responseTransactions(Transactions):
+class ResponseTransactions(Transactions):
     id: int
-    user_id: int
-    created_date: datetime
+    transaction_date: datetime
 
+class CreateTransaction(BaseModel):
+    name: str
+    amount: Decimal
+    transaction_type_id: int
+    wallet_id: int
+
+#Conversation
 class Conversations(BaseModel):
     id: int
     user_id: int
@@ -59,7 +69,7 @@ class Conversations(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-
+#Chats
 class Chats(BaseModel):
     id: int
     user_id: int
@@ -68,17 +78,16 @@ class Chats(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-
+#Transaction Category
 class TransactionCategory(BaseModel):
     id: int
     name: str
-
     model_config = ConfigDict(from_attributes=True)
 
 class CreateTransactionCategory(BaseModel):
     name: str
 
-
+#Transaction Type
 class TransactionType(BaseModel):
     id: int
     name: str
@@ -86,7 +95,7 @@ class TransactionType(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-
+#Token
 class Token(BaseModel):
     access_token: str
     token_type: str

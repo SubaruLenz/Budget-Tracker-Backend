@@ -70,7 +70,7 @@ def create_category(
 
     #Only allow admin
     if (current_user.username != "admin"):
-        logger.error("Not admin try to delete category")
+        logger.error("Not admin try to create category")
         return {"error": "Unauthorized action"}
 
     #Create category
