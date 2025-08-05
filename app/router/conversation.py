@@ -10,7 +10,7 @@ from app.database import baseModels
 from app.database.database import get_db
 from app.database.models import Transactions, Users, TransactionType, Wallets
 from app.config.log_config import setup_config
-from app.llm.functions.get_transaction_types_function import get_transaction_types
+from app.llm.llm import llm_process
 
 #Routing
 router = APIRouter(tags=["Conversation"])
@@ -31,14 +31,16 @@ def user_verification(
         raise HTTPException(status_code=404, detail="User not found")
 
 #Routers
-@router.get("/conversation/get")
+@router.post("/conversation/get")
 async def get_conversation(
+    chat: baseModels.Chat,
     current_user: Annotated[baseModels.Users, Depends(jwt_manager.get_current_user)],
     db: Session = Depends(get_db)
 ):
     user_verification(current_user, db)
 
-    transaction_type = get_transaction_types(db)
-    return {"transaction": transaction_type}
+    chat = await llm_process(chat.chat, db)
+
+    return {"conversation": chat}
 
 

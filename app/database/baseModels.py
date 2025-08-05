@@ -95,6 +95,10 @@ class TransactionType(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+#Chat
+class Chat(BaseModel):
+    chat : str = ""
+
 #Token
 class Token(BaseModel):
     access_token: str

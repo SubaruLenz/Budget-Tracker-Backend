@@ -1,5 +1,6 @@
 #Libraries
 import logging
+from datetime import datetime
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
@@ -26,3 +27,5 @@ def get_transaction_types(db: Session):
     ]
     return verified_transaction_types
 
+def get_current_time():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
