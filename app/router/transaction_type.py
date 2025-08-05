@@ -13,7 +13,7 @@ from app.database.models import TransactionCategories, Users
 from app.config.log_config import setup_config
 
 #Routing
-router = APIRouter(tags=["Category"])
+router = APIRouter(tags=["Transaction Types"])
 
 #Logging
 setup_config()
@@ -31,7 +31,7 @@ def user_verification(
         raise HTTPException(status_code=404, detail="User not found")
 
 #Routers
-@router.get("/transaction/category/get", response_model=list[baseTransactionCategory])
+@router.get("/transaction/categories/get", response_model=list[baseTransactionCategory])
 async def get_categories(
     current_user: Annotated[baseUsers, Depends(jwt_manager.get_current_user)],
     db: Session = Depends(get_db)

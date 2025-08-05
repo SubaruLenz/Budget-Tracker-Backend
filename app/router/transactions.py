@@ -38,9 +38,6 @@ async def get_transactions(
     user_verification(current_user, db)
 
     transactions = db.query(Transactions).filter_by(user_id=current_user.id).all()
-    if (not transactions):
-        logger.info("No transactions")
-        return {"message": "No transaction"}
     
     verified_transations: list[baseModels.ResponseTransactions] = [
         baseModels.ResponseTransactions.model_validate(transaction) for transaction in transactions]
@@ -74,7 +71,7 @@ def create_transaction(
     db.add(new_transaction)
     db.commit()
     db.refresh
-    return {"message": f"New transaction created successfully {new_transaction.id}"}
+    return {"message": f"New transaction created successfully with id: {new_transaction.id}"}
 
 @router.put("/transaction/update/{id}")
 def update_transaction (
