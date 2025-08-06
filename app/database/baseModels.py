@@ -53,6 +53,7 @@ class Transactions(BaseModel):
 class ResponseTransactions(Transactions):
     id: int
     transaction_date: datetime
+    wallet_id: int
 
 class CreateTransaction(BaseModel):
     name: str

@@ -1,11 +1,13 @@
 #Libraries
-import boto3, logging, os
+import boto3, logging, os, json
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
+from datetime import datetime
 
 #Dependencies
 from app.config.log_config import setup_config
-from app.llm.functions.llm_functions import get_transaction_types, get_current_time
+from app.llm.functions.process_functions import process_transaction, process_analysis
 
 #Logging
 setup_config()
@@ -35,33 +37,37 @@ bedrock = boto3.client(
     region_name=os.getenv('AWS_REGION')
 )
 
+async def detect_intent(input: str):
+    intent_prompt = f"""Classify the intent of: "{input}"
+    Return only one word:
+    - "transaction" for recording expenses/income
+    - "analysis" for analyzing/reviewing expenses
+    """
+    
+    response = bedrock.converse(
+        modelId=MODEL_ID,
+        messages=[{"role": "user", "content": [{"text": intent_prompt}]}],
+        inferenceConfig={"temperature": 0.1}
+    )
+    
+    return response['output']['message']['content'][0]['text'].strip().lower()
+
 async def llm_process(input: str, db: Session):
     try:
-        #Get Resources
-        transaction_types = get_transaction_types(db)
-        current_time = get_current_time()
-
-        #Prompt
-        promt = f"""Extract transaction info from "{input}"
-        Instruction: Return only valid JSON with: name (string), amount (float), date (YY-MM-DD HH:MM:SS), transaction_type_id (integer)
-        Input example: {{"I spent 5 dollar while hanging out with friends yesterday"}}
-        Response example: {{"name": "Hang out with friend", "amount": -5.0, "date":}}
-        Resources:
-        - Current time: {current_time}
-        - Transaction type (including type id and type name): {transaction_types}
-        """
-
-        response = bedrock.converse(
-            modelId=MODEL_ID,
-            messages=[
-                {"role": "user", "content": [{"text": promt}]}
-            ]
-        )
+        intent = await detect_intent(input)
+        logger.info(f"Detected intent: {intent}")
         
-        # Extract response text
-        result = response['output']['message']['content'][0]['text']
-        logger.info(f"LLM Response: {result}")
-        return result
+        if intent == "transaction":
+            result = await process_transaction(input, db)
+            logger.info(f"Transaction result: {result}")
+            return result
+        elif intent == "analysis":
+            result = await process_analysis(input, db)
+            logger.info(f"Analysis result: {result}")
+            return result
+        else:
+            # Default to transaction
+            return await process_transaction(input, db)
         
     except Exception as e:
         logger.error(f"Error processing LLM request: {str(e)}")

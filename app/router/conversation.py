@@ -39,8 +39,8 @@ async def get_conversation(
 ):
     user_verification(current_user, db)
 
-    chat = await llm_process(chat.chat, db)
+    response = await llm_process(chat.chat, db)
 
-    return {"conversation": chat}
+    return {"conversation": response}
 
 
