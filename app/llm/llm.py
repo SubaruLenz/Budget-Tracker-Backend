@@ -60,15 +60,16 @@ async def llm_process(input: str, db: Session):
         if intent == "transaction":
             result = await process_transaction(input, db)
             logger.info(f"Transaction result: {result}")
-            return result
+            return f"Transaction processed: {result.name} - ${result.amount}"
         elif intent == "analysis":
             result = await process_analysis(input, db)
             logger.info(f"Analysis result: {result}")
             return result
         else:
             # Default to transaction
-            return await process_transaction(input, db)
+            result = await process_transaction(input, db)
+            return f"Transaction processed: {result.name} - ${result.amount}"
         
     except Exception as e:
         logger.error(f"Error processing LLM request: {str(e)}")
-        raise
+        return f"Sorry, I couldn't process your request: {str(e)}"

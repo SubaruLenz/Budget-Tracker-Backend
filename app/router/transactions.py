@@ -53,52 +53,57 @@ def create_transaction(
     db: Session = Depends(get_db)
 ):
     #Verification
-    user_verification(current_user, db) #User
+    user_verification(current_user, db)
 
     type_id = db.query(TransactionType).filter_by(id=baseTransaction.transaction_type_id).first()
-    verify_wallet_id = db.query(Wallets).filter_by(id=baseTransaction.wallet_id).first()
+    wallet = db.query(Wallets).filter_by(id=baseTransaction.wallet_id, user_id=current_user.id).first()
 
-    if (not type_id or not verify_wallet_id):
-        logger.error("Invalid ID")
+    if not type_id or not wallet:
+        logger.error("Invalid transaction type or wallet ID")
+        raise HTTPException(status_code=404, detail="Invalid transaction type or wallet ID")
 
+    # Create transaction
     new_transaction = Transactions(
-        name = baseTransaction.name,
-        amount = baseTransaction.amount,
-        transaction_type_id = baseTransaction.transaction_type_id,
-        wallet_id = baseTransaction.wallet_id,
+        name=baseTransaction.name,
+        amount=baseTransaction.amount,
+        transaction_type_id=baseTransaction.transaction_type_id,
+        wallet_id=baseTransaction.wallet_id,
         user_id=current_user.id
     )
+    
+    # Update wallet balance
+    wallet.balance += baseTransaction.amount
+    
     db.add(new_transaction)
     db.commit()
-    db.refresh
-    return {"message": f"New transaction created successfully with id: {new_transaction.id}"}
+    db.refresh(new_transaction)
+    
+    return {"message": f"Transaction created and wallet balance updated. New balance: {wallet.balance}"}
 
 @router.put("/transaction/update/{id}")
-def update_transaction (
+def update_transaction(
     id: int,
     baseTransaction: baseModels.Transactions,
     current_user: Annotated[baseModels.Users, Depends(jwt_manager.get_current_user)],
     db: Session = Depends(get_db)
 ):
-    
-    #Verification
     user_verification(current_user, db)
 
-    transaction = db.query(Transactions).filter_by(id=id).first()
+    transaction = db.query(Transactions).filter_by(id=id, user_id=current_user.id).first()
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
 
-    if (not transaction):
-        logger.error("Transaction not found")
-        return {"error": "Transaction not found"}
-    if (transaction.user_id != current_user.id):
-        logger.error("Unauthorized action")
-        return {"error": "Unauthorized action"}
-
+    wallet = db.query(Wallets).filter_by(id=transaction.wallet_id).first()
+    
+    # Revert old amount and apply new amount
+    wallet.balance = wallet.balance - transaction.amount + baseTransaction.amount
+    
     transaction.name = baseTransaction.name
     transaction.amount = baseTransaction.amount
     transaction.transaction_type_id = baseTransaction.transaction_type_id
+    
     db.commit()
-    db.refresh(transaction)
-    return {"meessage": f"Update successfully transaction {id}"}
+    return {"message": f"Transaction updated. New wallet balance: {wallet.balance}"}
 
 @router.delete("/transaction/delete/{id}")
 def delete_transaction(
@@ -106,21 +111,18 @@ def delete_transaction(
     current_user: Annotated[baseModels.Users, Depends(jwt_manager.get_current_user)],
     db: Session = Depends(get_db)
 ):
-    
-    #Verification
     user_verification(current_user, db)
 
-    transaction = db.query(Transactions).filter_by(id=id).first()
-
-    if (not transaction):
-        logger.error("Transaction not found")
-        return {"error": "Transaction not found"}
-    if (transaction.user_id != current_user.id):
-        logger.error("Unauthorized action")
-        return {"error": "Unauthorized action"}
+    transaction = db.query(Transactions).filter_by(id=id, user_id=current_user.id).first()
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    wallet = db.query(Wallets).filter_by(id=transaction.wallet_id).first()
+    
+    # Revert transaction amount from wallet
+    wallet.balance -= transaction.amount
     
     db.delete(transaction)
     db.commit()
-    db.refresh
-    logger.info(f"Transaction deleted ID: {id}")
-    return{"message": f"Transaction deleted sucessfully with ID: {id}"}
+    
+    return {"message": f"Transaction deleted. New wallet balance: {wallet.balance}"}
