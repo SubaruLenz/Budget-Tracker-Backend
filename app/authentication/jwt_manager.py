@@ -3,7 +3,7 @@ import os, jwt
 import logging
 from datetime import timedelta, datetime, timezone
 from typing import Annotated
-from dotenv import load_dotenv
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -19,11 +19,8 @@ from app.database.database import get_db
 setup_config()
 logger = logging.getLogger(__name__)
 
-#Get environment variables
-load_dotenv()
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRATION = os.getenv("ACCESS_TOKEN_EXPIRATION") #String
+#Get environment variables from config
+from app.config.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRATION
 
 #db: Session = Depends(get_db)
 

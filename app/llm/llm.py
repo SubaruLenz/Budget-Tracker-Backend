@@ -1,6 +1,6 @@
 #Libraries
 import boto3, logging, os, json
-from dotenv import load_dotenv
+
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from datetime import datetime
@@ -13,14 +13,8 @@ from app.llm.functions.process_functions import process_transaction, process_ana
 setup_config()
 logger = logging.getLogger(__name__)
 
-# Load .env file
-load_dotenv()
-
-# Get the database URL
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-AWS_REGION = os.getenv('AWS_REGION')
-MODEL_ID = os.getenv('MODEL_ID')
+# Get configuration from config system
+from app.config.config import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, MODEL_ID
 
 # Check if AWS credentials are set
 if AWS_ACCESS_KEY_ID is None or AWS_SECRET_ACCESS_KEY is None or AWS_REGION is None:
@@ -32,9 +26,9 @@ if AWS_ACCESS_KEY_ID is None or AWS_SECRET_ACCESS_KEY is None or AWS_REGION is N
 #Process
 bedrock = boto3.client(
     'bedrock-runtime',
-    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-    region_name=os.getenv('AWS_REGION')
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    region_name=AWS_REGION
 )
 
 async def detect_intent(input: str):

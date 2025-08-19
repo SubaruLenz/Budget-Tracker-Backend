@@ -1,14 +1,15 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from dotenv import load_dotenv
+
 from ..config.config import DATABASE_URL
 import os
 
-# Load .env file for local development
-load_dotenv()
+
 
 # Create SQLAlchemy engine
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL is not configured")
 engine = create_engine(DATABASE_URL)
 
 # Create a session factory
