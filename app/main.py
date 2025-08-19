@@ -34,7 +34,11 @@ def connect_to_db():
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Your React dev server
+    allow_origins=[
+        "http://localhost:5173",  # Your React dev server
+        "https://your-frontend-domain.com",  # Add your production frontend URL
+        # Add ALB URL when available
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
