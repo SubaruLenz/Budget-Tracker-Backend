@@ -106,30 +106,26 @@ async def account_update_password(
 @router.put("/users/update")
 async def account_update(
     current_user: Annotated[baseModels.Users, Depends(jwt_manager.get_current_user)],
-    baseUser: baseModels.CreateUser,
+    baseUser: baseModels.UpdateUser,
     db: Session = Depends(get_db)
 ):
     user = db.query(Users).filter_by(username=current_user.username).first()
     hash = jwt_manager.get_password_hash(baseUser.hashed_password)
     try:
-        if(user):
-            if (user.username == baseUser.username):
-                if (user.email == baseUser.email):
-                    user.name = baseUser.name
-                    user.password_hashed = hash
-                    db.merge(user)
-                    db.commit()
-                    logger.info("Update item successfully")
-                    return {"message": "Account updated successfully"}
-                else:
-                    logger.error("Email doesn't match")
-                    return {"error": "Email doesn't match"}
-            else:
-                logger.error("Username doesn't match")
-                return {"error": "Username doesn't match"}
-        else:
+        if(not user):
             logger.error(f"This account doesn't exist")
             return {"error": "This account doesn't exist"}
+        if (user.username != current_user.username):
+            logger.error("Username doesn't match")
+            return {"error": "Username doesn't match"}
+        
+        user.name = baseUser.name
+        user.email = baseUser.email
+        user.password_hashed = hash
+        db.merge(user)
+        db.commit()
+        logger.info("Update item successfully")
+        return {"message": "Account updated successfully"}
     except Exception as e:
         logger.exception(f"Error while trying to update user")
         return {"error": str(e)}

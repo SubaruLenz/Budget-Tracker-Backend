@@ -2,6 +2,7 @@ import time
 import psycopg2
 import logging
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from .database import models
 from .database.database import engine, DATABASE_URL
 from .config.log_config import setup_config
@@ -30,5 +31,17 @@ def connect_to_db():
         except Exception as e:
             logging.info(f"Error connecting to database: {e}")
             time.sleep(15)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",  # Your React dev server
+        "https://your-frontend-domain.com",  # Add your production frontend URL
+        # Add ALB URL when available
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(router_manager.routerManager)
