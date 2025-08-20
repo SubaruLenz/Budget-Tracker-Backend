@@ -19,7 +19,7 @@ def get_secret(secret_name: str, region_name: str = "us-east-1"):
         response = client.get_secret_value(SecretId=secret_name)
         return json.loads(response['SecretString'])
     except ClientError as e:
-        raise e
+        raise ValueError(f"Raising error{e}")
 
 def get_all_config():
     secret_name = os.getenv("SECRET_NAME")
